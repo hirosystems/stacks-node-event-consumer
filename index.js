@@ -1,6 +1,6 @@
 const cp = require('child_process');
 const fs = require('fs');
-const fastify = require("fastify")();
+const http = require('http');
 
 let eventId = 0;
 if (fs.existsSync(process.env.BOOTSTRAP_EVENTS_FILE)) {
@@ -10,13 +10,12 @@ if (fs.existsSync(process.env.BOOTSTRAP_EVENTS_FILE)) {
 }
 
 const fd = fs.openSync(process.env.BOOTSTRAP_EVENTS_FILE, 'a');
-fastify.post('*', function (request, reply) {
-  fs.appendFileSync(fd, `${++eventId}\t${Date.now()}\t${request.url}\t${JSON.stringify(request.body)}\n`);
-  reply.code(200).send();
-});
-fastify.listen({ host: '0.0.0.0', port: 3998 }, function (err, address) {
-  if (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-});
+http.createServer((req, res) => {
+  fs.appendFileSync(fd, `${++eventId}\t${Date.now()}\t${req.url}\t`);
+  req
+    .on('data', chunk => fs.appendFileSync(fd, chunk))
+    .on('end', () => {
+      fs.appendFileSync(fd, '\n');
+      res.writeHead(200).end();
+    });
+}).listen(3998, '0.0.0.0');
