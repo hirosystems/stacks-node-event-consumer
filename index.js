@@ -11,7 +11,7 @@ if (fs.existsSync(process.env.BOOTSTRAP_EVENTS_FILE)) {
 
 const fd = fs.openSync(process.env.BOOTSTRAP_EVENTS_FILE, 'a');
 http.createServer((req, res) => {
-  fs.appendFileSync(fd, `${++eventId}\t${Date.now()}\t${req.url}\t`);
+  fs.appendFileSync(fd, `${++eventId}\t${(new Date()).toISOString()}\t${req.url}\t`);
   req
     .on('data', chunk => fs.appendFileSync(fd, chunk))
     .on('end', () => {
