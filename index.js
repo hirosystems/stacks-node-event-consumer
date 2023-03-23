@@ -1,17 +1,22 @@
+#!/usr/bin/env node
+
 const cp = require('child_process');
 const fs = require('fs');
 const http = require('http');
+const path = require('path');
 
-console.log(`Writing events to file: ${process.env.BOOTSTRAP_EVENTS_FILE}`);
+const outputFile = path.resolve(process.env.BOOTSTRAP_EVENTS_FILE || 'events.tsv');
+console.log(`Writing events to file: ${outputFile}`);
 
 let eventId = 0;
-if (fs.existsSync(process.env.BOOTSTRAP_EVENTS_FILE)) {
-  const lastLine = cp.execSync(`tail -n 1 ${process.env.BOOTSTRAP_EVENTS_FILE}`).toString();
+if (fs.existsSync(outputFile)) {
+  const lastLine = cp.execSync(`tail -n 1 ${outputFile}`).toString();
   const id = parseInt(lastLine.split('\t')[0]);
   eventId = Number.isNaN(id) ? eventId : id;
 }
 
-const fd = fs.openSync(process.env.BOOTSTRAP_EVENTS_FILE, 'a');
+fs.mkdirSync(path.dirname(outputFile), { recursive: true });
+const fd = fs.openSync(outputFile, 'a');
 const server = http.createServer((req, res) => {
   const lineChunks = [Buffer.from(`${++eventId}\t${(new Date()).toISOString()}\t${req.url}\t`)];
   req
@@ -22,7 +27,9 @@ const server = http.createServer((req, res) => {
       fs.appendFileSync(fd, line);
       res.writeHead(200).end();
     });
-}).listen(3998, '0.0.0.0', () => console.log('Server started:', server.address()));
+}).listen(parseInt(process.env.EVENT_CONSUMER_PORT || 3888), '0.0.0.0', () => {
+  console.log('Server started:', server.address());
+});
 
 for (const signal of ['SIGTERM', 'SIGINT']) {
   process.on(signal, sig => {
