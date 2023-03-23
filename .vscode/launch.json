@@ -12,7 +12,7 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "BOOTSTRAP_EVENTS_FILE": "./.tmp/events.tsv",
+                "EVENTS_FILE": "./.tmp/events.tsv",
                 "EVENT_CONSUMER_PORT": "3888",
             },
             "program": "${workspaceFolder}/index.js"

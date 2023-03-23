@@ -5,7 +5,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 
-const outputFile = path.resolve(process.env.BOOTSTRAP_EVENTS_FILE || 'events.tsv');
+const outputFile = path.resolve(process.env.EVENTS_FILE || process.env.BOOTSTRAP_EVENTS_FILE || 'events.tsv');
 console.log(`Writing events to file: ${outputFile}`);
 
 let eventId = 0;
